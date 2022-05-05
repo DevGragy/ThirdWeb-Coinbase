@@ -1,12 +1,48 @@
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { coins } from "../static/coins";
 import Coin from "./Coin";
+import BalanceChart from "./BalanceChart";
 
-const Portfolio = () => {
+const Portfolio = ({ thirdWebTokens, sanityTokens, walletAddress }) => {
+  const [walletBalance, setWalletBalance] = useState(0);
+  const tokenToUSD = {};
+
+  for (const token of sanityTokens) {
+    tokenToUSD[token.contractAddress] = Number(token.usdPrice);
+  }
+
+  useEffect(() => {
+    const calculateTotalBalance = async () => {
+      const totalBalance = await Promise.all(
+        thirdWebTokens.map(async (token) => {
+          const balance = await token.balanceOf(walletAddress);
+          return Number(balance.displayValue) * tokenToUSD[token.address];
+        })
+      );
+
+      setWalletBalance(totalBalance.reduce((acc, curr) => acc + curr, 0));
+    };
+
+    calculateTotalBalance();
+  }, [thirdWebTokens]);
+
   return (
     <Wrapper>
       <Content>
+        <Chart>
+          <div>
+            <Balance>
+              <BalanceTitle>Portfolio balance</BalanceTitle>
+              <BalanceValue>
+                {"$"}
+                {walletBalance.toLocaleString()}
+              </BalanceValue>
+            </Balance>
+          </div>
+          <BalanceChart />
+        </Chart>
         <PortfolioTable>
           <TableItem>
             <Title>Your Assets</Title>
@@ -54,9 +90,27 @@ const Content = styled.div`
   padding: 2rem 1rem;
 `;
 
+const Chart = styled.div`
+  border: 1px solid #fff;
+  padding: 1rem 2rem;
+`;
+
+const Balance = styled.div``;
+
+const BalanceTitle = styled.div`
+  color: #8a919e;
+  font-size: 0.9rem;
+`;
+
+const BalanceValue = styled.div`
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+`;
+
 const PortfolioTable = styled.div`
   margin-top: 1rem;
-  border: 1px solid #282b2f;
+  border: 1px solid #fff;
 `;
 const Table = styled.div`
   width: 100%;
@@ -77,7 +131,7 @@ const TableItem = styled.div`
 `;
 
 const Divider = styled.div`
-  border-bottom: 1px solid #282b2f;
+  border-bottom: 1px solid #fff;
 `;
 
 const Title = styled.div`
