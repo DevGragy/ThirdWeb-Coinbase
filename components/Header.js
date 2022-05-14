@@ -1,6 +1,31 @@
 import styled from "styled-components";
+import Modal from 'react-modal'
+import { useRouter } from 'next/router'
+import TransferModal from './modal/TransferModal'
+import Link from 'next/link'
 
-const Header = ({ walletAddress, connecWallet }) => {
+Modal.setAppElement('#__next')
+
+const Header = ({ walletAddress, sanityTokens, thirdWebTokens ,connecWallet }) => {
+
+  const router = useRouter()
+
+  const customStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      transform: 'translate(-50%, -50%)',
+      backgroundColor: '#0a0b0d',
+      padding: 0,
+      border: 'none'
+    },
+    overlay: {
+      backgroundColor: 'rgba( 10, 11, 13, 0.75)',
+    },
+  }
+
   return (
     <Wrapper>
       <Title>Assets</Title>
@@ -12,8 +37,22 @@ const Header = ({ walletAddress, connecWallet }) => {
           </WalletAddress>
         </WalletLink>
         <ButtonBS>Buy / Sell</ButtonBS>
-        <ButtonSR>Send / Receive</ButtonSR>
+        <Link href={'/?transfer=1'}>
+          <ButtonSR>Send / Receive</ButtonSR>
+        </Link>
+        
       </ButtonsContainer>
+      <Modal
+        isOpen={ !! router.query.transfer }
+        onRequestClose = { () => router.push('/') }
+        style={customStyles}
+      >
+        <TransferModal 
+          sanityTokens={sanityTokens} 
+          thirdWebTokens={thirdWebTokens}
+          walletAddress={walletAddress}  
+        />
+      </Modal>
     </Wrapper>
   );
 };
